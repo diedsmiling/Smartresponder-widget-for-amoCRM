@@ -20,7 +20,7 @@ gulp.task('clean_up', function(){
  * Compiles sass
  * @depends sass clean_up
  */
-gulp.task('sass', ['clean_up'], function () {
+gulp.task('sass', function () {
     gulp.src('main.scss')
         .pipe(sass().on('error', sass.logError))
         .pipe(gulp.dest(''));
@@ -28,9 +28,9 @@ gulp.task('sass', ['clean_up'], function () {
 
 /**
  * Copies widget files to build directory
- * @depends sass task
+ * @depends clean_up task
  */
-gulp.task('build_widget', ['sass'], function(){
+gulp.task('build_widget', ['clean_up'], function(){
    return gulp.src(buildFiles).pipe(debug({title: 'Copying:'})).pipe(copy('widget'));
 });
 
