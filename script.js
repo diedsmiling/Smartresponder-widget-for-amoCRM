@@ -1,13 +1,19 @@
-define(['jquery'], function($){
+    define(['jquery'], function($){
     var SmartresponderWidget = function () {
-        var _this = this;
+        var _this = this,
+            Sr; //Helper object
+
+        Sr = {
+            say : function(code){
+                return _this.i18n(code) || '';
+            }
+        }
+
         this.callbacks = {
             render: function(){
                 var lang = _this.i18n('userLang'),
                     widgetSettings = _this.get_settings(),
                     widgetPath = widgetSettings.path;
-
-                console.log(widgetPath, widgetSettings);
 
                 if(typeof(AMOCRM.data.current_card)!='undefined'){
                     if(AMOCRM.data.current_card.id == 0) {
@@ -23,9 +29,19 @@ define(['jquery'], function($){
                     body:'',
                     render :  '\
                    <div class="sr-form">\
-                       <div class="sr-form-button sr-sub">SEND</div>\
+                        <select name="">\
+                            <option value="1">1</option>\
+                            <option value="1">2</option>\
+                        </select>\
+                        <div class="sr-form-button sr-sub">\
+                            <button type="button" class="button-input  button-input-disabled js-card-quick-lead-add" tabindex="" id="quick_add_form_btn">\
+                                <span class="button-input-inner ">\
+                                    <span class="button-input-inner__text"></span>\
+                                </span>\
+                            </button>\
                        </div>\
-                       <div class="ac-already-subs"></div>\
+                   </div>\
+                   <div class="ac-already-subs"></div>\
                    <link type="text/css" rel="stylesheet" href="'+widgetPath+'/main.css" >'
                 });
                 return true;
