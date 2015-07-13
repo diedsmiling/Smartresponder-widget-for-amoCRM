@@ -4,7 +4,8 @@ var gulp  = require('gulp'),
     debug = require('gulp-debug'),
     watch = require('gulp-watch'),
     clean = require('gulp-clean'),
-    buildFiles = ['i18n/**/*', 'images/**/*', 'manifest.json', 'script.js']
+    sass = require('gulp-sass'),
+    buildFiles = ['i18n/**/*', 'images/**/*', 'manifest.json', 'script.js', 'main.css'];
 
 /**
  * Deletes widget directory and widget zip file
@@ -16,10 +17,20 @@ gulp.task('clean_up', function(){
 });
 
 /**
- * Copies widget files to build directory
- * @depends clean_up task
+ * Compiles sass
+ * @depends sass clean_up
  */
-gulp.task('build_widget', ['clean_up'], function(){
+gulp.task('sass', ['clean_up'], function () {
+    gulp.src('main.scss')
+        .pipe(sass().on('error', sass.logError))
+        .pipe(gulp.dest(''));
+});
+
+/**
+ * Copies widget files to build directory
+ * @depends sass task
+ */
+gulp.task('build_widget', ['sass'], function(){
    return gulp.src(buildFiles).pipe(debug({title: 'Copying:'})).pipe(copy('widget'));
 });
 
@@ -35,7 +46,8 @@ gulp.task('zip_widget', ['build_widget'], function () {
 });
 
 gulp.task('watch', function(){
+    gulp.watch('main.scss', ['sass']);
     gulp.watch(buildFiles, ['zip_widget'])
 });
 
-gulp.task('default', ['zip_widget', 'watch']);
+gulp.task('default', ['watch']);
