@@ -29,6 +29,19 @@
     "api_key":"ключ API"
   },
   "other":{
-    "subscribe" : "Подписать"
+    "errors" : {
+      "apiKey": {
+        "title":"Неверный API-ключ.",
+        "body":"Проверьте точно ли совпадает введённый API-ключ с ключом, который Вам выдал сервис Smartresponder",
+        "short":"Ошибка авторизации. Проверьте введённый API-ключ."
+      },
+      "badAjax": {
+        "title" : "Ошибка соеденения",
+        "body" : "Не удалось соединиться с сервисом Smartresponder.Если данная ситуация повторится, обратитесь, пожалуйста, в службу поддержки сервиса SmartResponder.",
+        "short": "Не удалось соединиться с сервисом Smartresponder."
+      }
+    },
+    "subscribe" : "Подписать",
+    "notificationHeader" : "SmartResponder"
   }
 }
