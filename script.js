@@ -38,19 +38,49 @@
                 errors.add_error(n_data,callbacks);
             },
             clearInputErrors: function(element){
-                element.find(".sr_widget_input_error").remove();
+                var error = element.find(".sr_widget_input_error");
+                if(error.length == 0)
+                    return true;
+
+                 var elementHeight = element.outerHeight(true),
+                    errorHeight = error.outerHeight(true),
+                    newHeight = elementHeight-errorHeight,
+                    styleAttr = element.attr('style');
+
+                element.css('height', elementHeight+'px');
+                error.fadeOut(200, function(){
+                    element.animate({'height': newHeight+'px'}, 200, 'linear', function(){
+                        element.clearQueue().find(".sr_widget_input_error").remove();
+                        if(typeof styleAttr === 'undefined')
+                            element.removeAttr('style');
+                        else
+                            element.attr('style', styleAttr);
+                    });
+                });
             },
             appendInputError : function(element, message){
-                var errorHeight;
+                var errorsElements = element.find('.sr_widget_input_error');
+                if(errorsElements.length > 0){
+                    errorsElements.eq(0).text(message);
+                    return true;
+                }
+
+                var elementHeight = element.height(),
+                    styleAttr = element.attr('style');
+
                 //add invisible fake container to get error height. Needed for easing.
                 element.css('position', 'relative').append('<div style="position: absolute; top: -5000px" id="fake_ph"><p id="fake_error" class="sr_widget_input_error" style="color: #F00; padding-top: 15px;">' + message + '</p></div>')
-                errorHeight = $("#fake_error").outerHeight(true)+8;
-                //$("#fake_ph").remove();
-                console.log(element.outerHeight(true));
-                element.animate({'margin-bottom': errorHeight+'px'}, 500, 'linear', function(){
-                    element.append('<p class="sr_widget_input_error" style="color: #F00; padding-top: 15px;">' + message + '</p>');
-                    element.css('margin-bottom', '0');
-                    element.outerHeight(true);
+                var errorHeight = $("#fake_error").outerHeight(true),
+                    newHeight = errorHeight + elementHeight;
+
+                $("#fake_ph").remove();
+                element.clearQueue().animate({'height': newHeight+'px'}, 200, 'linear', function(){
+                    element.append('<p class="sr_widget_input_error" style="color: #F00; padding-top: 15px;display: none;">' + message + '</p>');
+                    element.find('.sr_widget_input_error').fadeIn(200);
+                    if(typeof styleAttr === 'undefined')
+                        element.removeAttr('style');
+                    else
+                        element.attr('style', styleAttr);
                 });
                 element.find(".sr_widget_input_error").hide();
             }
@@ -111,11 +141,13 @@
                     var button = $('.js-widget-save'),
                         apiKeyContainer = $('input[name="api_key"]').closest('.widget_settings_block__item_field');
 
-                    Sr.clearInputErrors(apiKeyContainer);
                     if(!Sr.validate.apiKey()){
                         _this.set_status('error');
                         button.trigger('button:save:error');
                         Sr.appendInputError(apiKeyContainer, Sr.say('other.errors.apiKey.short'));
+                    }
+                    else{
+                        Sr.clearInputErrors(apiKeyContainer);
                     }
                 }
                 return false;
