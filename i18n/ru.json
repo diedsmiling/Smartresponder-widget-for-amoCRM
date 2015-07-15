@@ -41,6 +41,12 @@
         "short": "Не удалось соединиться с сервисом Smartresponder."
       }
     },
+    "nofitfication":{
+      "installed": {
+        "title" : "Виджет успешно установлен!",
+        "body" : "Подписать контакты на рассылку Вы можете, перейдя в раздел \"Контакты\"."
+      }
+    },
     "subscribe" : "Подписать",
     "notificationHeader" : "SmartResponder"
   }
