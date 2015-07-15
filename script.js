@@ -1,10 +1,11 @@
     define(['jquery'], function($){
     var SmartresponderWidget = function () {
         var _this = this,
+            authorised,
             Sr; //Helper object
-        console.log(_this.get_settings());
         Sr = {
             settings : _this.get_settings(),
+            apiBaseUrl : 'http://api.smartresponder.ru',
             say : function(code){
                 return _this.i18n(code) || '';
             },
@@ -17,8 +18,36 @@
               }
             },
             validate : {
-                apiKey : function(){
-                    return false;
+                apiKey : function(apiKey){
+                    var button = $('.js-widget-save'),
+                        apiKeyContainer = $('input[name="api_key"]').closest('.widget_settings_block__item_field');
+                    _this.crm_post(
+                        Sr.apiBaseUrl+'/account.html',
+                        {
+                            format: 'json',
+                            action: 'info',
+                            api_key: apiKey
+                        },
+                        function(result){
+                            if(result.result == '0'){
+                                _this.set_status('error');
+                                button.trigger('button:save:error');
+                                var msg = (result.error.code == '-1.1' ? Sr.say('other.errors.apiKey.short') : Sr.say('other.errors.badAjax.short'));
+                                Sr.appendInputError(apiKeyContainer, msg);
+                            }else{
+                                Sr.clearInputErrors(apiKeyContainer);
+                                _this.set_status('installed');
+                                authorised = true;
+                                $('.js-widget-save').click();
+                            }
+                        },
+                        'json',
+                        function(error){
+                            Sr.appendInputError(apiKeyContainer, Sr.say('other.errors.badAjax.short'));
+                            return false;
+                        }
+                    )
+
                 }
             },
             showError : function(message){
@@ -137,20 +166,19 @@
                 return true;
             },
             onSave: function(data){
-                if(data.active == 'Y'){
-                    var button = $('.js-widget-save'),
-                        apiKeyContainer = $('input[name="api_key"]').closest('.widget_settings_block__item_field');
-
-                    if(!Sr.validate.apiKey()){
-                        _this.set_status('error');
-                        button.trigger('button:save:error');
-                        Sr.appendInputError(apiKeyContainer, Sr.say('other.errors.apiKey.short'));
-                    }
-                    else{
-                        Sr.clearInputErrors(apiKeyContainer);
-                    }
+                if(authorised) {
+                    authorised = false;
+                    return true;
                 }
-                return false;
+
+                if(data.active == 'Y'){
+                    Sr.validate.apiKey(data.fields.api_key);
+                }
+                else {
+                    authorised = false;
+                    return true;
+                }
+
             },
             destroy: function(){
 
