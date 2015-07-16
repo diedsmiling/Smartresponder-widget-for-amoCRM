@@ -12,14 +12,31 @@ define( [ "jquery" ], function( $ ) {
                 return _this.i18n( code ) || ""
             },
             get: {
-              deliveries: function() {
-                console.log( "get deliveries" );
-              },
-              groups: function() {
-                console.log( "get groups" );
-              }
+                deliveries: function() {
+                    console.log( "get deliveries" );
+                },
+                groups: function() {
+                    console.log( "get groups" );
+                },
+                emails: function() {
+                    var emails = {} ;
+
+                    $.each(
+                        $( ".card-cf-table-main-entity .email_wrapper input[type=text]:visible" ),
+                        function( key, el ) {
+                            if ( Sr.validate.email( el.value ) ) {
+                                emails[el.value] = el.value;
+                            }
+                    } );
+
+                    return emails;
+                }
             },
             validate: {
+                email: function( email ) {
+                    var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+                    return re.test( email );
+                },
                 apiKey: function( apiKey ) {
                     var button = $( ".js-widget-save" ),
                         apiKeyContainer = $( "input[name='api_key']" )
@@ -156,6 +173,7 @@ define( [ "jquery" ], function( $ ) {
                     body: "",
                     render:  "" +
                     "<div class=\"sr-form\">" +
+                    "   <div id=\"sr-email-container\"></div>" +
                     "   <div id=\"sr-deliveries-container\"></div>" +
                     "   <div id=\"sr-groups-container\"></div>" +
                     "   <div id=\"sr-subscribe-button-container\"></div>" +
@@ -166,7 +184,9 @@ define( [ "jquery" ], function( $ ) {
                 } );
 
                 $( "#sr-subscribe-button-container" ).html( _this.render(
-                    { ref: "/tmpl/controls/button.twig" },
+                    {
+                        ref: "/tmpl/controls/button.twig"
+                    },
                     {
                         text: Sr.say( "other.subscribe" ),
                         id: "sr-subscribe-button"
@@ -176,7 +196,7 @@ define( [ "jquery" ], function( $ ) {
                 return true;
             },
             init: function() {
-                Sr.get.groups();
+                Sr.get.emails();
                 console.log( "init" );
                 return true;
             },
