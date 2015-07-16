@@ -5,6 +5,8 @@ define( [ "jquery" ], function( $ ) {
             Sr; //Helper object
         Sr = {
             settings: _this.get_settings(),
+            notifications: AMOCRM.notifications,
+            dateNow: Math.ceil( Date.now() / 1000 ),
             apiBaseUrl: "http://api.smartresponder.ru",
             say: function( code ) {
                 return _this.i18n( code ) || ""
@@ -20,7 +22,8 @@ define( [ "jquery" ], function( $ ) {
             validate: {
                 apiKey: function( apiKey ) {
                     var button = $( ".js-widget-save" ),
-                        apiKeyContainer = $( "input[name='api_key']" ).closest( ".widget_settings_block__item_field" );
+                        apiKeyContainer = $( "input[name='api_key']" )
+                            .closest( ".widget_settings_block__item_field" );
                     _this.crm_post( Sr.apiBaseUrl + "/account.html",
                         {
                             format: "json",
@@ -55,21 +58,14 @@ define( [ "jquery" ], function( $ ) {
 
                 }
             },
-            showError: function( message ) {
-                console.log( Sr.settings );
-                var  errors = AMOCRM.notifications,
-                    dateNow = Math.ceil( Date.now() / 1000 ),
-                    nData = {
-                        header: Sr.say( "other.notificationHeader" ) + ": '" + message.title,
-                        text:"<p>" + message.body + "</p>",
-                        date: dateNow
-                    },
-                    callbacks = { done: function() {console.log( "done" );},
-                        fail: function() {console.log( "fail" );},
-                        always: function() {console.log( "always" );}
-                    };
-
-                errors.add_error( nData, callbacks );
+            showNotification: function( message, fError ) {
+                var data = {
+                    id: Math.floor( ( Math.random() * 100000 ) + 1 ),
+                    header: Sr.say( "other.notificationHeader" ) + ": '" + message.title,
+                    text:"<p>" + message.body + "</p>",
+                    date: Sr.dateNow
+                };
+                Sr.notifications.add_error( data );
             },
             clearInputErrors: function( element ) {
                 var error = element.find( ".sr_widget_input_error" );
@@ -83,14 +79,18 @@ define( [ "jquery" ], function( $ ) {
 
                 element.css( "height", elementHeight + "px" );
                 error.fadeOut( 200, function() {
-                    element.animate( { "height": newHeight + "px" }, 200, "linear", function() {
-                        element.clearQueue().find( ".sr_widget_input_error" ).remove();
-                        if ( typeof styleAttr === "undefined" ) {
-                            element.removeAttr( "style" );
-                        } else {
-                            element.attr( "style", styleAttr );
-                        }
-                    } );
+                    element.animate(
+                        { "height": newHeight + "px" },
+                        200,
+                        "linear",
+                        function() {
+                            element.clearQueue().find( ".sr_widget_input_error" ).remove();
+                            if ( typeof styleAttr === "undefined" ) {
+                                element.removeAttr( "style" );
+                            } else {
+                                element.attr( "style", styleAttr );
+                            }
+                        } );
                 } );
             },
             appendInputError: function( element, message ) {
@@ -103,7 +103,7 @@ define( [ "jquery" ], function( $ ) {
                 var elementHeight = element.height(),
                     styleAttr = element.attr( "style" );
 
-                //add invisible fake container to get error height. Needed for easing.
+                //add invisible container to get error height. Needed for easing.
                 element.css( "position", "relative" ).append(
                     "<div style=\"position: absolute; top: -5000px\" id=\"fake_ph\">" +
                     "  <p id=\"fake_error\" class=\"sr_widget_input_error\" " +
@@ -136,7 +136,6 @@ define( [ "jquery" ], function( $ ) {
             }
         }
 
-
         this.callbacks = {
             render: function() {
                 var lang = _this.i18n( "userLang" ),
@@ -157,24 +156,23 @@ define( [ "jquery" ], function( $ ) {
                     body: "",
                     render:  "" +
                     "<div class=\"sr-form\">" +
-                    "   <select>" +
-                    "       <option value=\"1\">1</option>" +
-                    "       <option value=\"1\">2</option>" +
-                    "   </select>" +
-                    "   <div class=\"sr-form-button sr-sub\">" +
-                    "       <button type=\"button\" " +
-                    "               class=\"button-input  button-input-disabled js-card-quick-lead-add\" " +
-                    "               id=\"quick_add_form_btn\">" +
-                    "           <span class=\"button-input-inner\">" +
-                    "               <span class=\"button-input-inner__text\"></span>" +
-                    "           </span>" +
-                    "       </button>" +
-                    "   </div>" +
+                    "   <div id=\"sr-deliveries-container\"></div>" +
+                    "   <div id=\"sr-groups-container\"></div>" +
+                    "   <div id=\"sr-subscribe-button-container\"></div>" +
                     "</div>" +
                     "<div class=\"ac-already-subs\"></div>" +
                     "<link type=\"text/css\" " +
                     "       rel=\"stylesheet\" href=\"" + widgetPath + "/main.css\" >"
                 } );
+
+                $( "#sr-subscribe-button-container" ).html( _this.render(
+                    { ref: "/tmpl/controls/button.twig" },
+                    {
+                        text: Sr.say( "other.subscribe" ),
+                        id: "sr-subscribe-button"
+                    }
+                ) );
+
                 return true;
             },
             init: function() {
