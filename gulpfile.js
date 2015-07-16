@@ -31,7 +31,9 @@ gulp.task( "sass", function() {
  * @depends clean_up task
  */
 gulp.task( "build_widget", [ "clean_up" ], function() {
-   return gulp.src( buildFiles ).pipe( debug( { title: "Copying:" } ) ).pipe( copy( "widget" ) );
+   return gulp.src( buildFiles )
+       .pipe( debug( { title: "Copying:" } ) )
+       .pipe( copy( "widget" ) );
 } );
 
 /**
