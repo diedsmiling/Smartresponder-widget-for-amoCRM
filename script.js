@@ -11,12 +11,51 @@ define( [ "jquery" ], function( $ ) {
             say: function( code ) {
                 return _this.i18n( code ) || ""
             },
-            get: {
-                deliveries: function() {
-                    console.log( "get deliveries" );
-                },
-                groups: function() {
-                    console.log( "get groups" );
+            buildSelect: {
+                srEnitites: function( entityName ) {
+                    _this.crm_post( Sr.apiBaseUrl +
+                            ( entityName == "deliveries" ?
+                                "/deliveries.html"
+                                    :
+                                "/groups.html" ),
+                        {
+                            format: "json",
+                            action: "list",
+                            api_key: _this.get_settings().api_key
+                        },
+                        function( result ) {
+                            if ( result.result == "0" ) {
+                                Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
+                            }else {
+                                var entities = [],
+                                    domContainer = (
+                                        entityName == "deliveries" ?
+                                            $( "#sr-deliveries-container" )
+                                                :
+                                            $( "#sr-groups-container" )
+                                    );
+                                $.each( result.list.elements, function( key, element ) {
+                                    entities.push( {
+                                        id: element.id,
+                                        option: element.title
+                                    } )
+                                } );
+                                domContainer
+                                    .html( _this.render( {
+                                        ref: "/tmpl/controls/select.twig"
+                                    },
+                                    {
+                                        items: entities,
+                                        class_name: "sr-" + entityName + "-select"
+                                    }
+                                ) );
+                            }
+                        },
+                        "json",
+                        function( error ) {
+                            Sr.showNotification( Sr.say( "other.errors.badAjax.short" ) );
+                        }
+                    );
                 },
                 emails: function() {
                     var emails = [] ;
@@ -32,7 +71,15 @@ define( [ "jquery" ], function( $ ) {
                             }
                         } );
 
-                    return emails;
+                    $( "#sr-emails-container" )
+                        .html( _this.render( {
+                            ref: "/tmpl/controls/select.twig"
+                        },
+                        {
+                            items: emails,
+                            class_name: "sr-emails-select"
+                        }
+                    ) );
                 }
             },
             validate: {
@@ -74,11 +121,11 @@ define( [ "jquery" ], function( $ ) {
                                 Sr.say( "other.errors.badAjax.short" ) );
                             return false;
                         }
-                    )
+                    );
 
                 }
             },
-            showNotification: function( message, fError ) {
+            showNotification: function( message ) {
                 var data = {
                     id: Math.floor( ( Math.random() * 100000 ) + 1 ),
                     header: Sr.say( "other.notificationHeader" ) + ": '" + message.title,
@@ -186,29 +233,22 @@ define( [ "jquery" ], function( $ ) {
                     "       rel=\"stylesheet\" href=\"" + widgetPath + "/main.css\" >"
                 } );
 
-                $( "#sr-subscribe-button-container" ).html( _this.render(
-                    {
-                        ref: "/tmpl/controls/button.twig"
-                    },
-                    {
-                        text: Sr.say( "other.subscribe" ),
-                        id: "sr-subscribe-button"
-                    }
-                ) );
+                $( "#sr-subscribe-button-container" )
+                    .html( _this.render( {
+                            ref: "/tmpl/controls/button.twig"
+                        },
+                        {
+                            text: Sr.say( "other.subscribe" ),
+                            id: "sr-subscribe-button"
+                        }
+                    ) );
 
                 return true;
             },
             init: function() {
-
-                var emails = Sr.get.emails();
-                $( "#sr-emails-container" ).html( _this.render(
-                    { ref: "/tmpl/controls/select.twig" },
-                    {
-                        items: emails,
-                        class_name: 'class'
-                    }
-                ) );
-                console.log( "init" );
+                Sr.buildSelect.emails();
+                Sr.buildSelect.srEnitites( "deliveries" );
+                Sr.buildSelect.srEnitites( "groups" );
                 return true;
             },
             bind_actions: function() {
