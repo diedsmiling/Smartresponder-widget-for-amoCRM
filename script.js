@@ -19,15 +19,18 @@ define( [ "jquery" ], function( $ ) {
                     console.log( "get groups" );
                 },
                 emails: function() {
-                    var emails = {} ;
+                    var emails = [] ;
 
                     $.each(
                         $( ".card-cf-table-main-entity .email_wrapper input[type=text]:visible" ),
                         function( key, el ) {
                             if ( Sr.validate.email( el.value ) ) {
-                                emails[el.value] = el.value;
+                                emails.push( {
+                                    id: el.value,
+                                    option: el.value
+                                } );
                             }
-                    } );
+                        } );
 
                     return emails;
                 }
@@ -89,7 +92,7 @@ define( [ "jquery" ], function( $ ) {
                 if ( error.length == 0 ) {
                     return true;
                 }
-                 var elementHeight = element.outerHeight( true ),
+                var elementHeight = element.outerHeight( true ),
                     errorHeight = error.outerHeight( true ),
                     newHeight = elementHeight - errorHeight,
                     styleAttr = element.attr( "style" );
@@ -142,13 +145,13 @@ define( [ "jquery" ], function( $ ) {
                             '   style="color: #F00; padding-top: 15px;display: none;">' +
                                 message +
                             "</p>" );
-                    element.find( ".sr_widget_input_error" ).fadeIn( 200 );
-                    if ( typeof styleAttr === "undefined" ) {
-                        element.removeAttr( "style" );
-                    }else {
-                        element.attr( "style", styleAttr );
-                    }
-                } );
+                        element.find( ".sr_widget_input_error" ).fadeIn( 200 );
+                        if ( typeof styleAttr === "undefined" ) {
+                            element.removeAttr( "style" );
+                        }else {
+                            element.attr( "style", styleAttr );
+                        }
+                    } );
                 element.find( ".sr_widget_input_error" ).hide();
             }
         }
@@ -173,7 +176,7 @@ define( [ "jquery" ], function( $ ) {
                     body: "",
                     render:  "" +
                     "<div class=\"sr-form\">" +
-                    "   <div id=\"sr-email-container\"></div>" +
+                    "   <div id=\"sr-emails-container\"></div>" +
                     "   <div id=\"sr-deliveries-container\"></div>" +
                     "   <div id=\"sr-groups-container\"></div>" +
                     "   <div id=\"sr-subscribe-button-container\"></div>" +
@@ -196,7 +199,15 @@ define( [ "jquery" ], function( $ ) {
                 return true;
             },
             init: function() {
-                Sr.get.emails();
+
+                var emails = Sr.get.emails();
+                $( "#sr-emails-container" ).html( _this.render(
+                    { ref: "/tmpl/controls/select.twig" },
+                    {
+                        items: emails,
+                        class_name: 'class'
+                    }
+                ) );
                 console.log( "init" );
                 return true;
             },
@@ -233,7 +244,7 @@ define( [ "jquery" ], function( $ ) {
                     console.log( "leads" );
                 }
             },
-            tasks: {//select taks in list and clicked on widget name
+            tasks: {//select tasks in list and clicked on widget name
                 selected: function() {
                     console.log( "tasks" );
                 }
