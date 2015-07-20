@@ -108,7 +108,7 @@ define( [ "jquery" ], function( $ ) {
                                     Sr.say ( "other.emptyGroupsAndDeliveries" );
                                 $( "#sr-centred-animation-icon" ).remove();
                                 if ( Sr.entitiesAmount.deliveries == 0 &&
-                                    Sr.entitiesAmount.deliveries == 0 ) {
+                                    Sr.entitiesAmount.groups == 0 ) {
                                     Sr.render.appendToForm( "<p>" + msg + "</p>" );
                                 }
                             }
