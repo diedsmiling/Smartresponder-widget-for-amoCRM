@@ -1,5 +1,21 @@
 $bgColor: #095F9C;
+$white: #fff;
 
 .card-widgets__widget-smartresponder{
     background: $bgColor;
+}
+#sr-centred-animation-icon{
+  margin: 0px auto;
+}
+#sr-subscribe-button-container{
+  text-align: center;
+}
+.sr-form{
+  padding: 12px 11px 12px;
+  background: $white;
+
+  .sr-block{
+    padding: 4px 0px;
+  }
+
 }

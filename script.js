@@ -4,12 +4,51 @@ define( [ "jquery" ], function( $ ) {
             authorised,
             Sr; //Helper object
         Sr = {
+            entitiesAmount: {
+                "deliveries": 0,
+                "groups": 0
+            },
             settings: _this.get_settings(),
             notifications: AMOCRM.notifications,
             dateNow: Math.ceil( Date.now() / 1000 ),
             apiBaseUrl: "http://api.smartresponder.ru",
             say: function( code ) {
                 return _this.i18n( code ) || ""
+            },
+            getEmails: function() {
+                var emails = [],
+                emailContainers = $( ".card-cf-table-main-entity" )
+                    .find( ".email_wrapper input[type=text]:visible" );
+
+                $.each(
+                    emailContainers,
+                    function( key, el ) {
+                        if ( Sr.validate.email( el.value ) ) {
+                            emails.push( {
+                                id: el.value,
+                                option: el.value
+                            } );
+                        }
+                    } );
+
+                return emails.length == 0 ? false : emails;
+            },
+            render: {
+                button: function() {
+                    $( "#sr-subscribe-button-container" )
+                        .html(
+                            _this.render( { ref: "/tmpl/controls/button.twig" },
+                                { text: Sr.say( "other.subscribe" ),
+                                    id: "sr-subscribe-button" } )
+                        );
+                },
+                appendToForm: function( message, fAppend ) {
+                    if ( fAppend ) {
+                        $( ".sr-form" ).append( message );
+                    } else {
+                        $( ".sr-form" ).html( message );
+                    }
+                }
             },
             buildSelect: {
                 srEnitites: function( entityName ) {
@@ -34,52 +73,64 @@ define( [ "jquery" ], function( $ ) {
                                                 :
                                             $( "#sr-groups-container" )
                                     );
-                                $.each( result.list.elements, function( key, element ) {
-                                    entities.push( {
-                                        id: element.id,
-                                        option: element.title
-                                    } )
-                                } );
-                                domContainer
-                                    .html( _this.render( {
-                                        ref: "/tmpl/controls/select.twig"
-                                    },
-                                    {
-                                        items: entities,
-                                        class_name: "sr-" + entityName + "-select"
+
+                                if ( result.list.count > 0 ) {
+                                    if ( entityName == "deliveries" ) {
+                                        Sr.entitiesAmount.deliveries =  result.list.count;
+                                    } else {
+                                        Sr.entitiesAmount.groups =  result.list.count;
                                     }
-                                ) );
+
+                                    $.each( result.list.elements, function( key, element ) {
+                                        entities.push( {
+                                            id: element.id,
+                                            option: element.title
+                                        } )
+                                    } );
+
+                                    domContainer.html(
+                                        _this.render( {
+                                            ref: "/tmpl/controls/select.twig"
+                                        },
+                                        {
+                                            items: entities,
+                                            class_name: "sr-" + entityName + "-select"
+                                        } )
+                                    );
+                                }
                             }
+                            if ( entityName == "groups" ) {
+                                $( "#sr-centred-animation-icon" ).remove();
+                                if ( Sr.entitiesAmount.deliveries == 0 &&
+                                    Sr.entitiesAmount.deliveries == 0 ) {
+                                    Sr.render.appendToForm( "<p>" +
+                                        Sr.say ( "other.emptyGroupsAndDeliveries" ) +
+                                        "</p>" );
+                                }
+                            }
+
                         },
                         "json",
                         function( error ) {
                             Sr.showNotification( Sr.say( "other.errors.badAjax.short" ) );
+                            if ( entityName == 'groups' ) {
+                                $( "#sr-centred-animation-icon" ).fadeIn().remove();
+                            }
                         }
                     );
                 },
-                emails: function() {
-                    var emails = [] ;
-
-                    $.each(
-                        $( ".card-cf-table-main-entity .email_wrapper input[type=text]:visible" ),
-                        function( key, el ) {
-                            if ( Sr.validate.email( el.value ) ) {
-                                emails.push( {
-                                    id: el.value,
-                                    option: el.value
-                                } );
-                            }
-                        } );
+                emails: function( emails ) {
 
                     $( "#sr-emails-container" )
-                        .html( _this.render( {
-                            ref: "/tmpl/controls/select.twig"
-                        },
-                        {
-                            items: emails,
-                            class_name: "sr-emails-select"
-                        }
-                    ) );
+                        .html(
+                            _this.render( {
+                                ref: "/tmpl/controls/select.twig"
+                            },
+                            {
+                                items: emails,
+                                class_name: "sr-emails-select"
+                            } )
+                    );
                 }
             },
             validate: {
@@ -91,7 +142,8 @@ define( [ "jquery" ], function( $ ) {
                     var button = $( ".js-widget-save" ),
                         apiKeyContainer = $( "input[name='api_key']" )
                             .closest( ".widget_settings_block__item_field" );
-                    _this.crm_post( Sr.apiBaseUrl + "/account.html",
+                    _this.crm_post(
+                        Sr.apiBaseUrl + "/account.html",
                         {
                             format: "json",
                             action: "info",
@@ -134,6 +186,11 @@ define( [ "jquery" ], function( $ ) {
                 };
                 Sr.notifications.add_error( data );
             },
+            /**
+             * Deletes error elements
+             * @param element
+             * @returns {boolean}
+             */
             clearInputErrors: function( element ) {
                 var error = element.find( ".sr_widget_input_error" );
                 if ( error.length == 0 ) {
@@ -157,9 +214,15 @@ define( [ "jquery" ], function( $ ) {
                             } else {
                                 element.attr( "style", styleAttr );
                             }
-                        } );
+                        }
+                    );
                 } );
             },
+            /**
+             * Renders error aler near input field
+             * @param {oject} element, container-element
+             * @param {string} message, Error message
+             */
             appendInputError: function( element, message ) {
                 var errorsElements = element.find( ".sr_widget_input_error" );
                 if ( errorsElements.length > 0 ) {
@@ -223,32 +286,35 @@ define( [ "jquery" ], function( $ ) {
                     body: "",
                     render:  "" +
                     "<div class=\"sr-form\">" +
-                    "   <div id=\"sr-emails-container\"></div>" +
-                    "   <div id=\"sr-deliveries-container\"></div>" +
-                    "   <div id=\"sr-groups-container\"></div>" +
-                    "   <div id=\"sr-subscribe-button-container\"></div>" +
+                    "   <div class=\"sr-block\" id=\"sr-emails-container\"></div>" +
+                    "   <div class=\"sr-block\" id=\"sr-deliveries-container\"></div>" +
+                    "   <div class=\"sr-block\" id=\"sr-groups-container\"></div>" +
+                    "   <div class=\"sr-block\" id=\"sr-subscribe-button-container\"></div>" +
                     "</div>" +
                     "<div class=\"ac-already-subs\"></div>" +
                     "<link type=\"text/css\" " +
                     "       rel=\"stylesheet\" href=\"" + widgetPath + "/main.css\" >"
                 } );
 
-                $( "#sr-subscribe-button-container" )
-                    .html( _this.render( {
-                            ref: "/tmpl/controls/button.twig"
-                        },
-                        {
-                            text: Sr.say( "other.subscribe" ),
-                            id: "sr-subscribe-button"
-                        }
-                    ) );
-
                 return true;
             },
             init: function() {
-                Sr.buildSelect.emails();
-                Sr.buildSelect.srEnitites( "deliveries" );
-                Sr.buildSelect.srEnitites( "groups" );
+                var emails = Sr.getEmails();
+                Sr.render
+                    .appendToForm(
+                        $( "<span id=\"sr-centred-animation-icon\" " +
+                            "class=\"spinner-icon\"></span>" ),
+                        true
+                );
+                if ( emails ) {
+                    Sr.buildSelect.emails( emails );
+                    Sr.buildSelect.srEnitites( "deliveries" );
+                    Sr.buildSelect.srEnitites( "groups" );
+                    Sr.render.button();
+
+                } else {
+                    Sr.render.appendToForm( "<p>" + Sr.say( "other.emptyEmails" ) + "</p>", false );
+                }
                 return true;
             },
             bind_actions: function() {

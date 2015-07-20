@@ -7,7 +7,7 @@
       "secret_key": "d73611b27fdc3d96573aa879ec5bf2c3e3643f9f3f40e552c0299f4933fb080a",
       "version": "1.0.0",
       "interface_version": 2,
-      "init_once": true,
+      "init_once": false,
       "locale":[
               "ru"
     ],

@@ -48,6 +48,8 @@
       }
     },
     "subscribe" : "Подписать",
-    "notificationHeader" : "SmartResponder"
+    "notificationHeader" : "SmartResponder",
+    "emptyEmails" : "Email-адреса отсутсвуют",
+    "emptyGroupsAndDeliveries" : "В Вашем аккаунте Smartresponder отсутсвуют созданные рассылки и группы!"
   }
 }
