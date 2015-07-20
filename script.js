@@ -8,6 +8,7 @@ define( [ "jquery" ], function( $ ) {
                 "deliveries": 0,
                 "groups": 0
             },
+            fRequestErrorsCommited: false,
             settings: _this.get_settings(),
             notifications: AMOCRM.notifications,
             dateNow: Math.ceil( Date.now() / 1000 ),
@@ -64,6 +65,7 @@ define( [ "jquery" ], function( $ ) {
                         },
                         function( result ) {
                             if ( result.result == "0" ) {
+                                Sr.fRequestErrorsCommited = true;
                                 Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
                             }else {
                                 var entities = [],
@@ -100,12 +102,14 @@ define( [ "jquery" ], function( $ ) {
                                 }
                             }
                             if ( entityName == "groups" ) {
+                                var msg = Sr.fRequestErrorsCommited == true ?
+                                    Sr.say ( "other.errors.badAjax.short" )
+                                        :
+                                    Sr.say ( "other.emptyGroupsAndDeliveries" );
                                 $( "#sr-centred-animation-icon" ).remove();
                                 if ( Sr.entitiesAmount.deliveries == 0 &&
                                     Sr.entitiesAmount.deliveries == 0 ) {
-                                    Sr.render.appendToForm( "<p>" +
-                                        Sr.say ( "other.emptyGroupsAndDeliveries" ) +
-                                        "</p>" );
+                                    Sr.render.appendToForm( "<p>" + msg + "</p>" );
                                 }
                             }
 
