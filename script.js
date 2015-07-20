@@ -68,7 +68,13 @@ define( [ "jquery" ], function( $ ) {
                                 Sr.fRequestErrorsCommited = true;
                                 Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
                             }else {
-                                var entities = [],
+                                var entities = [
+                                        {
+                                            id: 0,
+                                            option: Sr
+                                                .say( "other." + entityName + "SelectDefaultOption" )
+                                        }
+                                    ],
                                     domContainer = (
                                         entityName == "deliveries" ?
                                             $( "#sr-deliveries-container" )

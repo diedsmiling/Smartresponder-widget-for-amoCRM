@@ -50,6 +50,8 @@
     "subscribe" : "Подписать",
     "notificationHeader" : "SmartResponder",
     "emptyEmails" : "Email-адреса отсутсвуют",
-    "emptyGroupsAndDeliveries" : "В Вашем аккаунте Smartresponder отсутсвуют созданные рассылки и группы!"
+    "emptyGroupsAndDeliveries" : "В Вашем аккаунте Smartresponder отсутсвуют созданные рассылки и группы!",
+    "deliveriesSelectDefaultOption": "Выберите расслыку",
+    "groupsSelectDefaultOption": "Выберите группу"
   }
 }
