@@ -315,7 +315,7 @@ define( [ "jquery" ], function( $ ) {
                     Sr.buildSelect.srEnitites( "deliveries" );
                     Sr.buildSelect.srEnitites( "groups" );
                     Sr.render.button();
-
+                    $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
                 } else {
                     Sr.render.appendToForm( "<p>" + Sr.say( "other.emptyEmails" ) + "</p>", false );
                 }
