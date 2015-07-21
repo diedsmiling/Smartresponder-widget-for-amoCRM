@@ -5,7 +5,8 @@ var gulp  = require( "gulp" ),
     watch = require( "gulp-watch" ),
     clean = require( "gulp-clean" ),
     sass = require( "gulp-sass" ),
-    buildFiles = [ "i18n/**/*", "images/**/*", "manifest.json", "script.js", "main.css" ];
+    buildFiles = [ "i18n/**/*", "images/**/*",
+        "manifest.json", "script.js", "main.css", "widget.php" ];
 
 /**
  * Deletes widget directory and widget zip file
