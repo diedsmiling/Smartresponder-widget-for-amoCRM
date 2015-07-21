@@ -46,14 +46,19 @@ define( [ "jquery" ], function( $ ) {
                 return url;
             },
             request: {
-                import: function( action ) {
+                import: function() {
                     $.ajax( {
                         method: "POST",
-                        url: Sr.buildLocalRequestUrl( action ),
+                        url: Sr.buildLocalRequestUrl( "import" ),
                         success: function( response ) {
                             if ( response.error ) {
                                 result = false;
                             }
+                            $( "#sr-subscribe-button" ).html( Sr.say( "other.subscribe" ) );
+                        },
+                        error: function( err ) {
+                            $( "#sr-subscribe-button" ).html( Sr.say( "other.subscribe" ) );
+                            Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
                         },
                         data: {
                             key: "a"
@@ -152,8 +157,8 @@ define( [ "jquery" ], function( $ ) {
                         },
                         "json",
                         function( error ) {
-                            Sr.showNotification( Sr.say( "other.errors.badAjax.short" ) );
-                            if ( entityName == 'groups' ) {
+                            Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
+                            if ( entityName == "groups" ) {
                                 $( "#sr-centred-animation-icon" ).fadeIn().remove();
                             }
                         }
@@ -379,6 +384,10 @@ define( [ "jquery" ], function( $ ) {
                         selectedValues = [];
                     } );
 
+                $( document ).on( "#sr-subscribe-button" ).on( "click", function() {
+                    $( "#sr-subscribe-button" ).html( "<span class=\"spinner-icon\"></span>" );
+                    Sr.request.import( );
+                } );
                 return true;
             },
             settings: function() {
