@@ -16,6 +16,10 @@ define( [ "jquery" ], function( $ ) {
             say: function( code ) {
                 return _this.i18n( code ) || ""
             },
+            /**
+             * Gets emails from contact page
+             * @returns {boolean}
+             */
             getEmails: function() {
                 var emails = [],
                 emailContainers = $( ".card-cf-table-main-entity" )
@@ -34,6 +38,11 @@ define( [ "jquery" ], function( $ ) {
 
                 return emails.length == 0 ? false : emails;
             },
+            /**
+             * Builds url for local requests
+             * @param {string} action
+             * @returns {string}
+             */
             buildLocalRequestUrl: function( action ) {// console.log( _this.get_settings().path );
                 var url = "/widgets/" +
                     _this.system().subdomain +
@@ -46,6 +55,9 @@ define( [ "jquery" ], function( $ ) {
                 return url;
             },
             request: {
+                /**
+                 * Sends import request to SR service
+                 */
                 import: function() {
                     $.ajax( {
                         method: "POST",
@@ -69,6 +81,9 @@ define( [ "jquery" ], function( $ ) {
                 }
             },
             render: {
+                /**
+                 * Renders AMOCRM internal button
+                 */
                 button: function() {
                     $( "#sr-subscribe-button-container" )
                         .html(
@@ -77,6 +92,11 @@ define( [ "jquery" ], function( $ ) {
                                     id: "sr-subscribe-button" } )
                         );
                 },
+                /**
+                 * Renders message at SR form
+                 * @param {string} message
+                 * @param {bool} fAppend
+                 */
                 appendToForm: function( message, fAppend ) {
                     if ( fAppend ) {
                         $( ".sr-form" ).append( message );
@@ -86,6 +106,10 @@ define( [ "jquery" ], function( $ ) {
                 }
             },
             buildSelect: {
+                /**
+                 * Builds AMOCRM internal selects with SR entities(groups or deliveries)
+                 * @param {string} entityName
+                 */
                 srEnitites: function( entityName ) {
                     _this.crm_post( Sr.apiBaseUrl +
                             ( entityName == "deliveries" ?
@@ -179,10 +203,19 @@ define( [ "jquery" ], function( $ ) {
                 }
             },
             validate: {
+                /**
+                 * Validates email-adress
+                 * @param {string} email
+                 * @returns {boolean}
+                 */
                 email: function( email ) {
                     var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
                     return re.test( email );
                 },
+                /**
+                 * Validates api key, sending request to SR
+                 * @param {string} apiKey
+                 */
                 apiKey: function( apiKey ) {
                     var button = $( ".js-widget-save" ),
                         apiKeyContainer = $( "input[name='api_key']" )
@@ -222,6 +255,10 @@ define( [ "jquery" ], function( $ ) {
 
                 }
             },
+            /**
+             * Shows AMOCRM internal error
+             * @param {object} message
+             */
             showNotification: function( message ) {
                 var data = {
                     id: Math.floor( ( Math.random() * 100000 ) + 1 ),
@@ -233,7 +270,7 @@ define( [ "jquery" ], function( $ ) {
             },
             /**
              * Deletes error elements
-             * @param element
+             * @param {object} element container element
              * @returns {boolean}
              */
             clearInputErrors: function( element ) {
@@ -264,9 +301,9 @@ define( [ "jquery" ], function( $ ) {
                 } );
             },
             /**
-             * Renders error aler near input field
-             * @param {oject} element, container-element
-             * @param {string} message, Error message
+             * Renders error alert near input field
+             * @param {object} element container-element
+             * @param {string} message Error message
              */
             appendInputError: function( element, message ) {
                 var errorsElements = element.find( ".sr_widget_input_error" );
@@ -415,7 +452,6 @@ define( [ "jquery" ], function( $ ) {
             },
             contacts: {//select contacts in list and clicked on widget name
                 selected: function() {
-
                     Sr.render.appendToForm(
                         "<div class=\"sr-block\"><p></p>" +
                             Sr.say( "other.emailsSelected" ) +
@@ -435,7 +471,6 @@ define( [ "jquery" ], function( $ ) {
                     Sr.buildSelect.srEnitites( "groups" );
                     Sr.render.button();
                     $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
-                    console.log( "contacts" );
                 }
             },
             leads: {//select leads in list and clicked on widget name
