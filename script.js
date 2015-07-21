@@ -34,6 +34,35 @@ define( [ "jquery" ], function( $ ) {
 
                 return emails.length == 0 ? false : emails;
             },
+            buildLocalRequestUrl: function( action ) {// console.log( _this.get_settings().path );
+                var url = "/widgets/" +
+                    _this.system().subdomain +
+                    "/loader/" +
+                    _this.get_settings().widget_code +
+                    "/" + action +
+                    "/info" +
+                    "/?amouser=" + _this.system().amouser +
+                    "&amohash=" + _this.system().amohash;
+                return url;
+            },
+            request: {
+                import: function( action ) {
+                    $.ajax( {
+                        method: "POST",
+                        url: Sr.buildLocalRequestUrl( action ),
+                        success: function( response ) {
+                            if ( response.error ) {
+                                result = false;
+                            }
+                        },
+                        data: {
+                            key: "a"
+                        },
+                        async: false,
+                        dataType: "json"
+                    } );
+                }
+            },
             render: {
                 button: function() {
                     $( "#sr-subscribe-button-container" )
@@ -72,7 +101,8 @@ define( [ "jquery" ], function( $ ) {
                                         {
                                             id: 0,
                                             option: Sr
-                                                .say( "other." + entityName + "SelectDefaultOption" )
+                                                .say( "other." +
+                                                    entityName + "SelectDefaultOption" )
                                         }
                                     ],
                                     domContainer = (
@@ -328,7 +358,27 @@ define( [ "jquery" ], function( $ ) {
                 return true;
             },
             bind_actions: function() {
-                console.log( "bind_actions" );
+                var deliveryId, groupId, selectedValues = [];
+                $ ( document )
+                    .on( "change", ".sr-deliveries-select, .sr-groups-select", function() {
+                        $.each(
+                            [ $( ".sr-deliveries-select" ), $( ".sr-groups-select" ) ],
+                            function() {
+                                selectedValues
+                                    .push( $( this )
+                                        .find( ".control--select--input" ).attr( "value" ) );
+                            }
+                        );
+                        deliveryId = selectedValues[0];
+                        groupId = selectedValues[1];
+                        if ( deliveryId  != 0 || groupId != 0 ) {
+                            $( "#sr-subscribe-button" ).removeClass( "button-input-disabled" );
+                        } else {
+                            $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
+                        }
+                        selectedValues = [];
+                    } );
+
                 return true;
             },
             settings: function() {
