@@ -16,6 +16,13 @@ $white: #fff;
 
   .sr-block{
     padding: 4px 0px;
+    .opacity-zero{
+      opacity: 0;
+    }
+    .opacity-trans{
+      opacity: 1;
+      transition: opacity 0.4s linear;
+    }
   }
 
 }

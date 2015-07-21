@@ -154,16 +154,28 @@ define( [ "jquery" ], function( $ ) {
                                             option: element.title
                                         } )
                                     } );
+                                    domContainer.animate(
+                                        { height: "35px" },
+                                        200,
+                                        "linear",
+                                        function() {
+                                            domContainer.html(
+                                                _this.render( {
+                                                        ref: "/tmpl/controls/select.twig"
+                                                    },
+                                                    {
+                                                        items: entities,
+                                                        class_name: "sr-" +
+                                                            entityName + "-select"
+                                                    } )
+                                            );
+                                            setTimeout( function() {
+                                                    $( ".sr-" + entityName + "-select" )
+                                                        .addClass( "opacity-trans" )
+                                            }, 100 );
+                                        }
+                                    )
 
-                                    domContainer.html(
-                                        _this.render( {
-                                            ref: "/tmpl/controls/select.twig"
-                                        },
-                                        {
-                                            items: entities,
-                                            class_name: "sr-" + entityName + "-select"
-                                        } )
-                                    );
                                 }
                             }
                             if ( entityName == "groups" ) {
@@ -183,7 +195,9 @@ define( [ "jquery" ], function( $ ) {
                         function( error ) {
                             Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
                             if ( entityName == "groups" ) {
-                                $( "#sr-centred-animation-icon" ).fadeIn().remove();
+                                $( "#sr-centred-animation-icon").fadeIn( 600, function() {
+                                    $( this ).remove();
+                                } );
                             }
                         }
                     );
@@ -346,7 +360,7 @@ define( [ "jquery" ], function( $ ) {
                     } );
                 element.find( ".sr_widget_input_error" ).hide();
             }
-        }
+        };
 
         this.callbacks = {
             render: function() {
