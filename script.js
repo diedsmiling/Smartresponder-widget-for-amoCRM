@@ -363,6 +363,10 @@ define( [ "jquery" ], function( $ ) {
                 return true;
             },
             bind_actions: function() {
+                $( "#multi-widget_close" ).on( "click", function() {
+                    _this.widgetsOverlay( false );
+                } );
+
                 var deliveryId, groupId, selectedValues = [];
                 $ ( document )
                     .on( "change", ".sr-deliveries-select, .sr-groups-select", function() {
@@ -411,6 +415,26 @@ define( [ "jquery" ], function( $ ) {
             },
             contacts: {//select contacts in list and clicked on widget name
                 selected: function() {
+
+                    Sr.render.appendToForm(
+                        "<div class=\"sr-block\"><p></p>" +
+                            Sr.say( "other.emailsSelected" ) +
+                        "<span id=\"sr-contacts-amount\"" +
+                        " class=\"sr_inline_spinner spinner-icon\"></span></p></div>" +
+                        "<div class=\"sr-block\" id=\"sr-deliveries-container\"></div>" +
+                        "<div class=\"sr-block\" id=\"sr-groups-container\"></div>" +
+                        "<div class=\"sr-block\" id=\"sr-subscribe-button-container\"></div>"
+                    );
+                    Sr.render
+                        .appendToForm(
+                        $( "<span id=\"sr-centred-animation-icon\" " +
+                        "class=\"spinner-icon\"></span>" ),
+                        true
+                    );
+                    Sr.buildSelect.srEnitites( "deliveries" );
+                    Sr.buildSelect.srEnitites( "groups" );
+                    Sr.render.button();
+                    $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
                     console.log( "contacts" );
                 }
             },
