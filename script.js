@@ -56,6 +56,32 @@ define( [ "jquery" ], function( $ ) {
             },
             request: {
                 /**
+                 * Makes ajax request
+                 *
+                 * @param {string} url
+                 * @param {object} data
+                 * @param {function} success
+                 * @param {function} error
+                 * @param {bool} useProxy
+                 */
+                do: function( url, data, success, error, useProxy ) {
+                   if ( useProxy == true ) {
+                       _this.crm_post( url, data, success, "json", error );
+                   } else {
+                       $.ajax( {
+                           method: "POST",
+                           url: url,
+                           data: data,
+                           success: success,
+                           error: error,
+                           dataType: "json"
+                       } );
+                   }
+                },
+                localRequest: function() {
+
+                },
+                /**
                  * Sends import request to SR service
                  */
                 import: function() {
@@ -111,96 +137,107 @@ define( [ "jquery" ], function( $ ) {
                  * @param {string} entityName
                  */
                 srEnitites: function( entityName ) {
-                    _this.crm_post( Sr.apiBaseUrl +
-                            ( entityName == "deliveries" ?
-                                "/deliveries.html"
-                                    :
-                                "/groups.html" ),
-                        {
-                            format: "json",
-                            action: "list",
-                            api_key: _this.get_settings().api_key
-                        },
-                        function( result ) {
-                            if ( result.result == "0" ) {
-                                Sr.fRequestErrorsCommited = true;
-                                Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
-                            }else {
-                                var entities = [
-                                        {
-                                            id: 0,
-                                            option: Sr
-                                                .say( "other." +
-                                                    entityName + "SelectDefaultOption" )
-                                        }
-                                    ],
-                                    domContainer = (
-                                        entityName == "deliveries" ?
-                                            $( "#sr-deliveries-container" )
-                                                :
-                                            $( "#sr-groups-container" )
-                                    );
+                    var url = Sr.apiBaseUrl +
+                        ( entityName == "deliveries" ?
+                            "/deliveries.html"
+                            :
+                            "/groups.html" );
 
-                                if ( result.list.count > 0 ) {
-                                    if ( entityName == "deliveries" ) {
-                                        Sr.entitiesAmount.deliveries =  result.list.count;
-                                    } else {
-                                        Sr.entitiesAmount.groups =  result.list.count;
+                    var data = {
+                        format: "json",
+                        action: "list",
+                        api_key: _this.get_settings().api_key
+                    };
+                    var success = function( result ) {
+                        var fadeSpinnerIcon = function() {
+                            $( "#sr-centred-animation-icon" ).fadeOut( 300, function() {
+                                $( ".spinner-wrapper" ).animate(
+                                    { height: "0px" },
+                                    200,
+                                    "linear",
+                                    function() {
+                                        $( this ).remove();
                                     }
-
-                                    $.each( result.list.elements, function( key, element ) {
-                                        entities.push( {
-                                            id: element.id,
-                                            option: element.title
-                                        } )
-                                    } );
-                                    domContainer.animate(
-                                        { height: "35px" },
-                                        200,
-                                        "linear",
-                                        function() {
-                                            domContainer.html(
-                                                _this.render( {
-                                                        ref: "/tmpl/controls/select.twig"
-                                                    },
-                                                    {
-                                                        items: entities,
-                                                        class_name: "sr-" +
-                                                            entityName + "-select"
-                                                    } )
-                                            );
-                                            setTimeout( function() {
-                                                    $( ".sr-" + entityName + "-select" )
-                                                        .addClass( "opacity-trans" )
-                                            }, 100 );
-                                        }
-                                    )
-
-                                }
-                            }
-                            if ( entityName == "groups" ) {
-                                var msg = Sr.fRequestErrorsCommited == true ?
-                                    Sr.say ( "other.errors.badAjax.short" )
-                                        :
-                                    Sr.say ( "other.emptyGroupsAndDeliveries" );
-                                $( "#sr-centred-animation-icon" ).remove();
-                                if ( Sr.entitiesAmount.deliveries == 0 &&
-                                    Sr.entitiesAmount.groups == 0 ) {
-                                    Sr.render.appendToForm( "<p>" + msg + "</p>" );
-                                }
-                            }
-
-                        },
-                        "json",
-                        function( error ) {
+                                );
+                            } );
+                        };
+                        if ( result.result == "0" ) {
+                            Sr.fRequestErrorsCommited = true;
                             Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
-                            if ( entityName == "groups" ) {
-                                $( "#sr-centred-animation-icon").fadeIn( 600, function() {
-                                    $( this ).remove();
+                        }else {
+                            var entities = [
+                                    {
+                                        id: 0,
+                                        option: Sr
+                                            .say( "other." +
+                                            entityName + "SelectDefaultOption" )
+                                    }
+                                ],
+                                domContainer = (
+                                    entityName == "deliveries" ?
+                                        $( "#sr-deliveries-container" )
+                                        :
+                                        $( "#sr-groups-container" )
+                                );
+
+                            if ( result.list.count > 0 ) {
+                                if ( entityName == "deliveries" ) {
+                                    Sr.entitiesAmount.deliveries =  result.list.count;
+                                } else {
+                                    Sr.entitiesAmount.groups =  result.list.count;
+                                }
+
+                                $.each( result.list.elements, function( key, element ) {
+                                    entities.push( {
+                                        id: element.id,
+                                        option: element.title
+                                    } )
                                 } );
+                                domContainer.animate(
+                                    { height: "35px" },
+                                    200,
+                                    "linear",
+                                    function() {
+                                        var htmlRendered = _this.render( {
+                                                ref: "/tmpl/controls/select.twig"
+                                            },
+                                            {
+                                                items: entities,
+                                                class_name: "sr-" +
+                                                entityName + "-select opacity-zero"
+                                            }
+                                        );
+                                        domContainer.html( htmlRendered );
+                                        setTimeout( function() {
+                                            $( ".sr-" + entityName + "-select" )
+                                                .addClass( "opacity-trans" )
+                                        }, 100 );
+                                    }
+                                )
+
                             }
                         }
-                    );
+                        if ( entityName == "groups" ) {
+                            var msg = Sr.fRequestErrorsCommited == true ?
+                                Sr.say ( "other.errors.badAjax.short" )
+                                :
+                                Sr.say ( "other.emptyGroupsAndDeliveries" );
+                            fadeSpinnerIcon();
+                            if ( Sr.entitiesAmount.deliveries == 0 &&
+                                Sr.entitiesAmount.groups == 0 ) {
+                                Sr.render.appendToForm( "<p>" + msg + "</p>" );
+                            }
+                        }
+                    };
+
+                    var error =  function( error ) {
+                        Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
+                        if ( entityName == "groups" ) {
+                            fadeSpinnerIcon();
+                        }
+                    };
+
+                    Sr.request.do( url, data, success, error, true );
                 },
                 emails: function( emails ) {
 
@@ -234,22 +271,22 @@ define( [ "jquery" ], function( $ ) {
                     var button = $( ".js-widget-save" ),
                         apiKeyContainer = $( "input[name='api_key']" )
                             .closest( ".widget_settings_block__item_field" );
-                    _this.crm_post(
-                        Sr.apiBaseUrl + "/account.html",
-                        {
+
+                    var url = Sr.apiBaseUrl + "/account.html",
+                        data = {
                             format: "json",
                             action: "info",
                             api_key: apiKey
                         },
-                        function( result ) {
+                        success = function( result ) {
                             if ( result.result == "0" ) {
                                 _this.set_status( "error" );
                                 button.trigger( "button:save:error" );
                                 var msg = (
                                     result.error.code == "-1.1" ?
-                                            Sr.say( "other.errors.apiKey.short" )
+                                        Sr.say( "other.errors.apiKey.short" )
                                         :
-                                            Sr.say( "other.errors.badAjax.short" )
+                                        Sr.say( "other.errors.badAjax.short" )
                                 );
                                 Sr.appendInputError( apiKeyContainer, msg );
                             }else {
@@ -259,14 +296,13 @@ define( [ "jquery" ], function( $ ) {
                                 $( ".js-widget-save" ).click();
                             }
                         },
-                        "json",
-                        function( error ) {
+                        error = function( error ) {
                             Sr.appendInputError( apiKeyContainer,
                                 Sr.say( "other.errors.badAjax.short" ) );
                             return false;
-                        }
-                    );
+                        };
 
+                    Sr.request.do( url, data, success, error, true );
                 }
             },
             /**
@@ -398,8 +434,10 @@ define( [ "jquery" ], function( $ ) {
                 var emails = Sr.getEmails();
                 Sr.render
                     .appendToForm(
-                        $( "<span id=\"sr-centred-animation-icon\" " +
-                            "class=\"spinner-icon\"></span>" ),
+                        $( "<span class=\"spinner-wrapper\">" +
+                                "<span id=\"sr-centred-animation-icon\" " +
+                                "class=\"spinner-icon\"></span>" +
+                            "</span>" ),
                         true
                 );
                 if ( emails ) {
@@ -477,8 +515,10 @@ define( [ "jquery" ], function( $ ) {
                     );
                     Sr.render
                         .appendToForm(
-                        $( "<span id=\"sr-centred-animation-icon\" " +
-                        "class=\"spinner-icon\"></span>" ),
+                        $( "<span class=\"spinner-wrapper\">" +
+                                "<span id=\"sr-centred-animation-icon\" " +
+                                "class=\"spinner-icon\"></span>" +
+                            "</span>" ),
                         true
                     );
                     Sr.buildSelect.srEnitites( "deliveries" );

@@ -13,7 +13,12 @@ $white: #fff;
 .sr-form{
   padding: 12px 11px 12px;
   background: $white;
-
+  .spinner-wrapper{
+    width:16px;
+    height: 16px;
+    display: block;
+    margin: 0px auto;
+  }
   .sr-block{
     padding: 4px 0px;
     .opacity-zero{
@@ -21,7 +26,7 @@ $white: #fff;
     }
     .opacity-trans{
       opacity: 1;
-      transition: opacity 0.4s linear;
+      transition: opacity 1s linear;
     }
   }
 
