@@ -8,6 +8,7 @@ define( [ "jquery" ], function( $ ) {
                 "deliveries": 0,
                 "groups": 0
             },
+            contactsToImport: [],
             fRequestErrorsCommited: false,
             settings: _this.get_settings(),
             notifications: AMOCRM.notifications,
@@ -43,15 +44,13 @@ define( [ "jquery" ], function( $ ) {
              * @param {string} action
              * @returns {string}
              */
-            buildLocalRequestUrl: function( action ) {// console.log( _this.get_settings().path );
-                var url = "/widgets/" +
+            buildLocalRequestUrl: function( action, devMode ) {// console.log( _this.get_settings().path );
+                var url = ( devMode == true ? "http://iamaplayer.ru/" : "/widgets/" )  +
                     _this.system().subdomain +
                     "/loader/" +
                     _this.get_settings().widget_code +
-                    "/" + action +
-                    "/info" +
-                    "/?amouser=" + _this.system().amouser +
-                    "&amohash=" + _this.system().amohash;
+                    "/" + action;
+
                 return url;
             },
             request: {
@@ -77,9 +76,6 @@ define( [ "jquery" ], function( $ ) {
                            dataType: "json"
                        } );
                    }
-                },
-                localRequest: function() {
-
                 },
                 /**
                  * Sends import request to SR service
@@ -479,7 +475,23 @@ define( [ "jquery" ], function( $ ) {
 
                 $( document ).on( "#sr-subscribe-button" ).on( "click", function() {
                     $( "#sr-subscribe-button" ).html( "<span class=\"spinner-icon\"></span>" );
-                    Sr.request.import( );
+                    var url = Sr.buildLocalRequestUrl( "import", true );
+                    var data = {
+                        amouser: _this.system().amouser,
+                        amohash: _this.system().amohash,
+                        contacts: Sr.contactsToImport,
+                        sr_debug: "1"
+                    };
+
+                    var success = function() {
+
+                    };
+
+                    var error = function() {
+
+                    };
+
+                    Sr.request.do( url, data, success, error, true );
                 } );
                 return true;
             },
@@ -525,6 +537,12 @@ define( [ "jquery" ], function( $ ) {
                     Sr.buildSelect.srEnitites( "groups" );
                     Sr.render.button();
                     $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
+                    Sr.contactsToImport = [];
+                    var selectedData = _this.list_selected();
+                    $.each( selectedData.selected,  function( key, element ) {
+                        Sr.contactsToImport.push( element.id );
+                    } );
+                    $( "#sr-contacts-amount" ).after( " " + Sr.contactsToImport.length ).remove();
                 }
             },
             leads: {//select leads in list and clicked on widget name
