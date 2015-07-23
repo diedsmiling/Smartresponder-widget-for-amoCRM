@@ -8,6 +8,7 @@ define( [ "jquery" ], function( $ ) {
                 "deliveries": 0,
                 "groups": 0
             },
+            emailsCount: 0,
             contactsToImport: [],
             fRequestErrorsCommited: false,
             settings: _this.get_settings(),
@@ -189,6 +190,7 @@ define( [ "jquery" ], function( $ ) {
                                         option: element.title
                                     } )
                                 } );
+
                                 domContainer.animate(
                                     { height: "35px" },
                                     200,
@@ -448,10 +450,6 @@ define( [ "jquery" ], function( $ ) {
                 return true;
             },
             bind_actions: function() {
-                $( "#multi-widget_close" ).on( "click", function() {
-                    _this.widgetsOverlay( false );
-                } );
-
                 var deliveryId, groupId, selectedValues = [];
                 $ ( document )
                     .on( "change", ".sr-deliveries-select, .sr-groups-select", function() {
@@ -473,25 +471,98 @@ define( [ "jquery" ], function( $ ) {
                         selectedValues = [];
                     } );
 
-                $( document ).on( "#sr-subscribe-button" ).on( "click", function() {
+                $( document ).off("click", "#sr-subscribe-button" ).on( "click", "#sr-subscribe-button", function() {
+                    if ( $( this ).hasClass( "button-input-disabled" ) ) {
+                        return false;
+                    }
+                    console.log('a');
                     $( "#sr-subscribe-button" ).html( "<span class=\"spinner-icon\"></span>" );
                     var url = Sr.buildLocalRequestUrl( "import", true );
+
+                    var deliveryDestination = $( ".sr-deliveries-select .control--select--input" )
+                        .attr( "value" );
+                    var groupDestination = $( ".sr-groups-select .control--select--input" )
+                        .attr( "value" );
+
                     var data = {
+                        api_key: _this.get_settings().api_key,
                         amouser: _this.system().amouser,
                         amohash: _this.system().amohash,
                         contacts: Sr.contactsToImport,
-                        sr_debug: "1"
+                        sr_debug: "1",
+                        delivery_destination: deliveryDestination,
+                        group_destination: groupDestination
                     };
 
-                    var success = function() {
+                    var success = function( result ) {
+                        var interval = null;
+                        var msg;
+                        if ( result.result < 1 || result.error == 1 ) {
 
+                            Sr.render
+                                .appendToForm( "<p>" +
+                                    Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                        }
+
+                        if ( result.result == 1 ) {
+                            var importKey = result.element.import_key;
+                            var url = Sr.buildLocalRequestUrl( "watch", true );
+                            var data = {
+                                api_key: _this.get_settings().api_key,
+                                amouser: _this.system().amouser,
+                                amohash: _this.system().amohash,
+                                import_key: importKey,
+                                sr_debug: 1
+                            }
+
+                            var success = function( result ) {
+                                if ( result.result < 1 || result.error == 1 ) {
+
+                                    Sr.render
+                                        .appendToForm( "<p>" +
+                                        Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                                }
+
+                                if ( result.result == 1 ) {
+                                    if ( result.element.progress == 100 ) {
+                                        if ( result.element.ticket == "----------" ) {
+                                            msg = Sr.say( "other.success" );
+                                        } else {
+                                            msg = Sr.say( "other.successWithTicket" ).replace( "[TICKETID]", result.element.ticket );
+                                        }
+                                        Sr.render
+                                            .appendToForm( "<p>" + msg + "</p>", false );
+
+                                        clearInterval( interval );
+                                    }
+                                }
+                            };
+
+                            var error = function() {
+                                Sr.render
+                                    .appendToForm( "<p>" +
+                                    Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                            }
+
+                           interval = setInterval( function() {
+                                Sr.request.do( url, data, success, error, true );
+                            }, 1000 );
+                        }
                     };
 
                     var error = function() {
-
+                        Sr.render
+                            .appendToForm( "<p>" +
+                            Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
                     };
 
+                    $( this ).empty().html( '<div style="margin:0 auto;" class="spinner-icon"></div>' );
                     Sr.request.do( url, data, success, error, true );
+                    return false;
+                } );
+
+                $( "#multi-widget_close" ).on( "click", function() {
+                    _this.widgetsOverlay( false );
                 } );
                 return true;
             },
@@ -539,10 +610,12 @@ define( [ "jquery" ], function( $ ) {
                     $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
                     Sr.contactsToImport = [];
                     var selectedData = _this.list_selected();
+                    Sr.emailsCount = 0;
                     $.each( selectedData.selected,  function( key, element ) {
                         Sr.contactsToImport.push( element.id );
+                        Sr.emailsCount += element.emails.length;
                     } );
-                    $( "#sr-contacts-amount" ).after( " " + Sr.contactsToImport.length ).remove();
+                    $( "#sr-contacts-amount" ).after( " " + Sr.emailsCount ).remove();
                 }
             },
             leads: {//select leads in list and clicked on widget name

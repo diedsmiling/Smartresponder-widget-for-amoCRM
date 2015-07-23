@@ -48,7 +48,10 @@
       }
     },
     "subscribe" : "Подписать",
+    "success": "Ваши контакты были успешно подписаны!",
+    "successWithTicket": "Заявка на импорт контактов была успешно принята. ID Вашей заявки: <strong>[TICKETID]</strong>. В ближайшее время с Вами свяжется наш отдел импорта",
     "notificationHeader" : "SmartResponder",
+    "emailsSelected" : "Выбранных email-адресов:",
     "emptyEmails" : "Email-адреса отсутсвуют",
     "emptyGroupsAndDeliveries" : "В Вашем аккаунте Smartresponder отсутсвуют созданные рассылки и группы!",
     "deliveriesSelectDefaultOption": "Выберите расслыку",
