@@ -531,8 +531,9 @@ define( [ "jquery" ], function( $ ) {
                         $( "#sr-subscribe-button" ).html( "<span class=\"spinner-icon\"></span>" );
                         var url = Sr.buildLocalRequestUrl( "import", true );
 
-                        var deliveryDestination = $( ".sr-deliveries-select .control--select--input" )
-                            .attr( "value" );
+                        var deliveryDestination =
+                            $( ".sr-deliveries-select .control--select--input" )
+                                .attr( "value" );
                         var groupDestination = $( ".sr-groups-select .control--select--input" )
                             .attr( "value" );
 
@@ -581,7 +582,8 @@ define( [ "jquery" ], function( $ ) {
 
                                         Sr.render
                                             .appendToForm( "<p>" +
-                                            Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                                                Sr.say( "other.errors.badAjax.short" ) +
+                                            "</p>", false );
                                     }
 
                                     if ( result.result == 1 ) {
