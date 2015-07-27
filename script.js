@@ -19,6 +19,9 @@ define( [ "jquery" ], function( $ ) {
             say: function( code ) {
                 return _this.i18n( code ) || ""
             },
+            /**
+             * Gets amount of emails, form selected contacts
+             */
             getEmailsAmount: function() {
                 var url = Sr.buildLocalRequestUrl( "count", true );
                 var data = {
@@ -409,7 +412,7 @@ define( [ "jquery" ], function( $ ) {
                 var elementHeight = element.height(),
                     styleAttr = element.attr( "style" );
 
-                //add invisible container to get error height. Needed for easing.
+                /* add invisible container to get error height. Needed for easing. */
                 element.css( "position", "relative" ).append(
                     "<div style=\"position: absolute; top: -5000px\" id=\"fake_ph\">" +
                     "  <p id=\"fake_error\" class=\"sr_widget_input_error\" " +
@@ -451,7 +454,7 @@ define( [ "jquery" ], function( $ ) {
                 if ( typeof AMOCRM.data.current_card != "undefined" ) {
                     if ( AMOCRM.data.current_card.id == 0 ) {
                         return false;
-                    } // do not render if action is "add"
+                    } /* do not render if action is "add" */
                 }
 
                 _this.render_template( {
@@ -645,7 +648,7 @@ define( [ "jquery" ], function( $ ) {
             destroy: function() {
 
             },
-            contacts: {//select contacts in list and clicked on widget name
+            contacts: {/* select contacts in list and clicked on widget name */
                 selected: function() {
                     Sr.render.appendToForm(
                         "<div class=\"sr-block\"><p></p>" +

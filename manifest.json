@@ -14,10 +14,7 @@
       "installation": true
     },
     "locations":[
-      "ccard-1",
       "clist-1",
-      "lcard-1",
-      "llist-1",
       "settings"
     ],
     "settings":{
