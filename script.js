@@ -3,6 +3,7 @@ define( [ "jquery" ], function( $ ) {
         var _this = this,
             authorised,
             Sr; //Helper object
+
         Sr = {
             entitiesAmount: {
                 "deliveries": 0,
@@ -17,6 +18,31 @@ define( [ "jquery" ], function( $ ) {
             apiBaseUrl: "http://api.smartresponder.ru",
             say: function( code ) {
                 return _this.i18n( code ) || ""
+            },
+            getEmailsAmount: function() {
+                var url = Sr.buildLocalRequestUrl( "count", true );
+                var data = {
+                    amouser: _this.system().amouser,
+                    amohash: _this.system().amohash,
+                    contacts: Sr.contactsToImport,
+                    sr_debug: 1
+                }
+
+                var success = function( result ) {
+                    if ( result.result == "0" ) {
+                        Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
+                    }else {
+                        $( "#sr-contacts-amount" ).after( " " + result.amount ).remove();
+                    }
+                };
+
+                var error =  function( error ) {
+                    Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
+                    if ( entityName == "groups" ) {
+                        fadeSpinnerIcon();
+                    }
+                };
+                Sr.request.do( url, data, success, error, false );
             },
             /**
              * Gets emails from contact page
@@ -45,8 +71,8 @@ define( [ "jquery" ], function( $ ) {
              * @param {string} action
              * @returns {string}
              */
-            buildLocalRequestUrl: function( action, devMode ) {// console.log( _this.get_settings().path );
-                var url = ( devMode == true ? "http://iamaplayer.ru/" : "/widgets/" )  +
+            buildLocalRequestUrl: function( action, devMode ) {
+                var url = ( devMode == true ? "http://url.ru/" : "/widgets/" )  +
                     _this.system().subdomain +
                     "/loader/" +
                     _this.get_settings().widget_code +
@@ -128,12 +154,19 @@ define( [ "jquery" ], function( $ ) {
                     }
                 }
             },
+            /**
+             * Gets selected emails
+             */
+            getSelectedEmails: function() {
+                Sr.contactsToImport
+                    .push( $( ".sr-emails-select .control--select--input" ).attr( "value" ) );
+            },
             buildSelect: {
                 /**
-                 * Builds AMOCRM internal selects with SR entities(groups or deliveries)
+                 * Builds AMOCRM internal selects with list of SR entities(groups or deliveries)
                  * @param {string} entityName
                  */
-                srEnitites: function( entityName ) {
+                srEntities: function( entityName ) {
                     var url = Sr.apiBaseUrl +
                         ( entityName == "deliveries" ?
                             "/deliveries.html"
@@ -145,6 +178,11 @@ define( [ "jquery" ], function( $ ) {
                         action: "list",
                         api_key: _this.get_settings().api_key
                     };
+
+                    /**
+                     * Actions on successful request (gets entities)
+                     * @param result
+                     */
                     var success = function( result ) {
                         var fadeSpinnerIcon = function() {
                             $( "#sr-centred-animation-icon" ).fadeOut( 300, function() {
@@ -228,6 +266,10 @@ define( [ "jquery" ], function( $ ) {
                         }
                     };
 
+                    /**
+                     * Actions on failed request (getting entities)
+                     * @param error
+                     */
                     var error =  function( error ) {
                         Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
                         if ( entityName == "groups" ) {
@@ -235,8 +277,12 @@ define( [ "jquery" ], function( $ ) {
                         }
                     };
 
-                    Sr.request.do( url, data, success, error, true );
+                    Sr.request.do( url, data, success, error, false );
                 },
+                /**
+                 * Builds AMOCRM internal selects with list of emails
+                 * @param {string} entityName
+                 */
                 emails: function( emails ) {
 
                     $( "#sr-emails-container" )
@@ -253,7 +299,7 @@ define( [ "jquery" ], function( $ ) {
             },
             validate: {
                 /**
-                 * Validates email-adress
+                 * Validates email-address
                  * @param {string} email
                  * @returns {boolean}
                  */
@@ -300,7 +346,7 @@ define( [ "jquery" ], function( $ ) {
                             return false;
                         };
 
-                    Sr.request.do( url, data, success, error, true );
+                    Sr.request.do( url, data, success, error, false );
                 }
             },
             /**
@@ -440,8 +486,8 @@ define( [ "jquery" ], function( $ ) {
                 );
                 if ( emails ) {
                     Sr.buildSelect.emails( emails );
-                    Sr.buildSelect.srEnitites( "deliveries" );
-                    Sr.buildSelect.srEnitites( "groups" );
+                    Sr.buildSelect.srEntities( "deliveries" );
+                    Sr.buildSelect.srEntities( "groups" );
                     Sr.render.button();
                     $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
                 } else {
@@ -471,94 +517,108 @@ define( [ "jquery" ], function( $ ) {
                         selectedValues = [];
                     } );
 
-                $( document ).off("click", "#sr-subscribe-button" ).on( "click", "#sr-subscribe-button", function() {
-                    if ( $( this ).hasClass( "button-input-disabled" ) ) {
-                        return false;
-                    }
-                    console.log('a');
-                    $( "#sr-subscribe-button" ).html( "<span class=\"spinner-icon\"></span>" );
-                    var url = Sr.buildLocalRequestUrl( "import", true );
+                $( document ).off( "click", "#sr-subscribe-button" )
+                    .on( "click", "#sr-subscribe-button", function() {
+                        var sendingIds = 1;
+                        var contactName = 0;
 
-                    var deliveryDestination = $( ".sr-deliveries-select .control--select--input" )
-                        .attr( "value" );
-                    var groupDestination = $( ".sr-groups-select .control--select--input" )
-                        .attr( "value" );
+                        if ( $( this ).hasClass( "button-input-disabled" ) ) {
+                            return false;
+                        }
+                        $( "#sr-subscribe-button" ).html( "<span class=\"spinner-icon\"></span>" );
+                        var url = Sr.buildLocalRequestUrl( "import", true );
 
-                    var data = {
-                        api_key: _this.get_settings().api_key,
-                        amouser: _this.system().amouser,
-                        amohash: _this.system().amohash,
-                        contacts: Sr.contactsToImport,
-                        sr_debug: "1",
-                        delivery_destination: deliveryDestination,
-                        group_destination: groupDestination
-                    };
+                        var deliveryDestination = $( ".sr-deliveries-select .control--select--input" )
+                            .attr( "value" );
+                        var groupDestination = $( ".sr-groups-select .control--select--input" )
+                            .attr( "value" );
 
-                    var success = function( result ) {
-                        var interval = null;
-                        var msg;
-                        if ( result.result < 1 || result.error == 1 ) {
-
-                            Sr.render
-                                .appendToForm( "<p>" +
-                                    Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                        /* if single conact export */
+                        if ( Sr.contactsToImport == 0 ) {
+                            Sr.getSelectedEmails();
+                            sendingIds = 0;
+                            contactName = $( "#person_name" ).attr( "value" );
                         }
 
-                        if ( result.result == 1 ) {
-                            var importKey = result.element.import_key;
-                            var url = Sr.buildLocalRequestUrl( "watch", true );
-                            var data = {
-                                api_key: _this.get_settings().api_key,
-                                amouser: _this.system().amouser,
-                                amohash: _this.system().amohash,
-                                import_key: importKey,
-                                sr_debug: 1
+                        var data = {
+                            api_key: _this.get_settings().api_key,
+                            amouser: _this.system().amouser,
+                            amohash: _this.system().amohash,
+                            contacts: Sr.contactsToImport,
+                            sr_debug: "1",
+                            contact_name: contactName,
+                            sending_ids: sendingIds,
+                            delivery_destination: deliveryDestination,
+                            group_destination: groupDestination
+                        };
+
+                        var success = function( result ) {
+                            var interval = null;
+                            var msg;
+                            if ( result.result < 1 || result.error == 1 ) {
+
+                                Sr.render
+                                    .appendToForm( "<p>" +
+                                        Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
                             }
 
-                            var success = function( result ) {
-                                if ( result.result < 1 || result.error == 1 ) {
+                            if ( result.result == 1 ) {
+                                var importKey = result.element.import_key;
+                                var url = Sr.buildLocalRequestUrl( "watch", true );
+                                var data = {
+                                    api_key: _this.get_settings().api_key,
+                                    amouser: _this.system().amouser,
+                                    amohash: _this.system().amohash,
+                                    import_key: importKey,
+                                    sr_debug: 1
+                                }
 
+                                var success = function( result ) {
+                                    if ( result.result < 1 || result.error == 1 ) {
+
+                                        Sr.render
+                                            .appendToForm( "<p>" +
+                                            Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                                    }
+
+                                    if ( result.result == 1 ) {
+                                        if ( result.element.progress == 100 ) {
+                                            if ( result.element.ticket == "----------" ) {
+                                                msg = Sr.say( "other.success" );
+                                            } else {
+                                                msg = Sr.say( "other.successWithTicket" )
+                                                    .replace( "[TICKETID]", result.element.ticket );
+                                            }
+                                            Sr.render
+                                                .appendToForm( "<p>" + msg + "</p>", false );
+
+                                            clearInterval( interval );
+                                        }
+                                    }
+                                };
+
+                                var error = function() {
                                     Sr.render
                                         .appendToForm( "<p>" +
                                         Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
                                 }
 
-                                if ( result.result == 1 ) {
-                                    if ( result.element.progress == 100 ) {
-                                        if ( result.element.ticket == "----------" ) {
-                                            msg = Sr.say( "other.success" );
-                                        } else {
-                                            msg = Sr.say( "other.successWithTicket" ).replace( "[TICKETID]", result.element.ticket );
-                                        }
-                                        Sr.render
-                                            .appendToForm( "<p>" + msg + "</p>", false );
-
-                                        clearInterval( interval );
-                                    }
-                                }
-                            };
-
-                            var error = function() {
-                                Sr.render
-                                    .appendToForm( "<p>" +
-                                    Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                               interval = setInterval( function() {
+                                    Sr.request.do( url, data, success, error, false );
+                                }, 1000 );
                             }
+                        };
 
-                           interval = setInterval( function() {
-                                Sr.request.do( url, data, success, error, true );
-                            }, 1000 );
-                        }
-                    };
+                        var error = function() {
+                            Sr.render
+                                .appendToForm( "<p>" +
+                                Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
+                        };
 
-                    var error = function() {
-                        Sr.render
-                            .appendToForm( "<p>" +
-                            Sr.say( "other.errors.badAjax.short" ) + "</p>", false );
-                    };
-
-                    $( this ).empty().html( '<div style="margin:0 auto;" class="spinner-icon"></div>' );
-                    Sr.request.do( url, data, success, error, true );
-                    return false;
+                        $( this ).empty()
+                            .html( '<div style="margin:0 auto;" class="spinner-icon"></div>' );
+                        Sr.request.do( url, data, success, error, false );
+                        return false;
                 } );
 
                 $( "#multi-widget_close" ).on( "click", function() {
@@ -604,8 +664,8 @@ define( [ "jquery" ], function( $ ) {
                             "</span>" ),
                         true
                     );
-                    Sr.buildSelect.srEnitites( "deliveries" );
-                    Sr.buildSelect.srEnitites( "groups" );
+                    Sr.buildSelect.srEntities( "deliveries" );
+                    Sr.buildSelect.srEntities( "groups" );
                     Sr.render.button();
                     $( "#sr-subscribe-button" ).addClass( "button-input-disabled" );
                     Sr.contactsToImport = [];
@@ -613,19 +673,18 @@ define( [ "jquery" ], function( $ ) {
                     Sr.emailsCount = 0;
                     $.each( selectedData.selected,  function( key, element ) {
                         Sr.contactsToImport.push( element.id );
-                        Sr.emailsCount += element.emails.length;
                     } );
-                    $( "#sr-contacts-amount" ).after( " " + Sr.emailsCount ).remove();
+
+                    Sr.getEmailsAmount();
+
                 }
             },
             leads: {//select leads in list and clicked on widget name
                 selected: function() {
-                    console.log( "leads" );
                 }
             },
             tasks: {//select tasks in list and clicked on widget name
                 selected: function() {
-                    console.log( "tasks" );
                 }
             }
         };
