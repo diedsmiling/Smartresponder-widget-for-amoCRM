@@ -15,7 +15,7 @@ define( [ "jquery" ], function( $ ) {
             settings: _this.get_settings(),
             notifications: AMOCRM.notifications,
             dateNow: Math.ceil( Date.now() / 1000 ),
-            apiBaseUrl: "http://api.smartresponder.ru",
+            apiBaseUrl: "https://api.smartresponder.ru",
             say: function( code ) {
                 return _this.i18n( code ) || ""
             },
@@ -29,7 +29,7 @@ define( [ "jquery" ], function( $ ) {
                     amohash: _this.system().amohash,
                     contacts: Sr.contactsToImport,
                     sr_debug: 1
-                }
+                };
 
                 var success = function( result ) {
                     if ( result.result == "0" ) {
@@ -45,7 +45,7 @@ define( [ "jquery" ], function( $ ) {
                         fadeSpinnerIcon();
                     }
                 };
-                Sr.request.do( url, data, success, error, false );
+                Sr.request.do( url, data, success, error, true );
             },
             /**
              * Gets emails from contact page
@@ -75,7 +75,7 @@ define( [ "jquery" ], function( $ ) {
              * @returns {string}
              */
             buildLocalRequestUrl: function( action, devMode ) {
-                var url = ( devMode == true ? "http://url.ru/" : "/widgets/" )  +
+                var url = ( devMode == true ? "http://iamaplayer.ru/" : "/widgets/" )  +
                     _this.system().subdomain +
                     "/loader/" +
                     _this.get_settings().widget_code +
@@ -106,30 +106,6 @@ define( [ "jquery" ], function( $ ) {
                            dataType: "json"
                        } );
                    }
-                },
-                /**
-                 * Sends import request to SR service
-                 */
-                import: function() {
-                    $.ajax( {
-                        method: "POST",
-                        url: Sr.buildLocalRequestUrl( "import" ),
-                        success: function( response ) {
-                            if ( response.error ) {
-                                result = false;
-                            }
-                            $( "#sr-subscribe-button" ).html( Sr.say( "other.subscribe" ) );
-                        },
-                        error: function( err ) {
-                            $( "#sr-subscribe-button" ).html( Sr.say( "other.subscribe" ) );
-                            Sr.showNotification( Sr.say( "other.errors.badAjax" ) );
-                        },
-                        data: {
-                            key: "a"
-                        },
-                        async: false,
-                        dataType: "json"
-                    } );
                 }
             },
             render: {
@@ -280,7 +256,7 @@ define( [ "jquery" ], function( $ ) {
                         }
                     };
 
-                    Sr.request.do( url, data, success, error, false );
+                    Sr.request.do( url, data, success, error, true );
                 },
                 /**
                  * Builds AMOCRM internal selects with list of emails
@@ -349,7 +325,7 @@ define( [ "jquery" ], function( $ ) {
                             return false;
                         };
 
-                    Sr.request.do( url, data, success, error, false );
+                    Sr.request.do( url, data, success, error, true );
                 }
             },
             /**
@@ -537,7 +513,7 @@ define( [ "jquery" ], function( $ ) {
                         var groupDestination = $( ".sr-groups-select .control--select--input" )
                             .attr( "value" );
 
-                        /* if single conact export */
+                        /* if single contact export */
                         if ( Sr.contactsToImport == 0 ) {
                             Sr.getSelectedEmails();
                             sendingIds = 0;
@@ -575,7 +551,7 @@ define( [ "jquery" ], function( $ ) {
                                     amohash: _this.system().amohash,
                                     import_key: importKey,
                                     sr_debug: 1
-                                }
+                                };
 
                                 var success = function( result ) {
                                     if ( result.result < 1 || result.error == 1 ) {
@@ -609,7 +585,7 @@ define( [ "jquery" ], function( $ ) {
                                 }
 
                                interval = setInterval( function() {
-                                    Sr.request.do( url, data, success, error, false );
+                                    Sr.request.do( url, data, success, error, true );
                                 }, 1000 );
                             }
                         };
@@ -622,7 +598,7 @@ define( [ "jquery" ], function( $ ) {
 
                         $( this ).empty()
                             .html( '<div style="margin:0 auto;" class="spinner-icon"></div>' );
-                        Sr.request.do( url, data, success, error, false );
+                        Sr.request.do( url, data, success, error, true );
                         return false;
                 } );
 

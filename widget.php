@@ -39,7 +39,6 @@ class Widget extends \Helpers\Widgets
         foreach($_POST['contacts'] as $contactId){
             $ids[] = (int)$contactId;
         }
-        $emails = array();
         if(!empty($ids))
             $contacts = $this->contacts->get(array('id'=> $ids));
         $emails = $this->getEmailsFromContacts($contacts);
@@ -50,7 +49,7 @@ class Widget extends \Helpers\Widgets
     }
 
     /**
-     * Gets array of concatenated email and contact name
+     * Gets array of concatenated emails and contact names
      * @param $contacts
      * @return array
      */
@@ -90,7 +89,7 @@ class Widget extends \Helpers\Widgets
     }
 
     /**
-     * Send curl request
+     * Sends curl request
      * @param $link
      * @param $data
      * @return mixed
@@ -105,7 +104,7 @@ class Widget extends \Helpers\Widgets
     }
 
     /**
-     * Output error message
+     * Outputs error message
      * @param $error
      */
     protected function callError($error) {
@@ -117,7 +116,7 @@ class Widget extends \Helpers\Widgets
     }
 
     /**
-     * Gather and organize data for request
+     * Gathers and organizes data for request
      * @return array
      */
     protected function gatherData() {

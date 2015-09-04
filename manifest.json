@@ -3,8 +3,8 @@
       "name": "widget.name",
       "description": "widget.description",
       "short_description": "widget.short_description",
-      "code": "sr_export",
-      "secret_key": "044e709c73c05cb81a74f4bf15e4d9a67854224239349df954491929bb4d6e9a",
+      "code": "amo_smartresponder_export",
+      "secret_key": "5513fc21db1a0effaca812fd3e6205f40377946f5b50dca101e2a1e1f121c983",
       "version": "1.0.0",
       "interface_version": 2,
       "init_once": false,
@@ -14,6 +14,7 @@
       "installation": true
     },
     "locations":[
+      "ccard-1",
       "clist-1",
       "settings"
     ],
